@@ -45,14 +45,19 @@ export function AuthPage({ onAuthed }: { onAuthed: () => void }) {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6">
-      <Card className="w-full max-w-md">
+    <div className="relative min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-yellow-300 to-gray-500 overflow-hidden">
+      {/* Background watermark text behind the card */}
+      <div className="pointer-events-none absolute inset-0 flex items-end justify-center">
+        <div className="select-none text-black opacity-30 font-semibold tracking-tight text-4xl md:text-4xl lg:text-4xl mb-4">
+          app made by rohan kommathoti for csulb
+        </div>
+      </div>
+
+      <Card className="relative z-10 w-full max-w-md">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">Welcome</CardTitle>
           <CardDescription>
-            {mode === "login"
-              ? "Log in to continue."
-              : "Create an account to start messaging."}
+            {mode === "login" ? "Log in to continue." : "Create an account to start messaging."}
           </CardDescription>
         </CardHeader>
 
@@ -137,9 +142,7 @@ export function AuthPage({ onAuthed }: { onAuthed: () => void }) {
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Password must be at least 8 characters.
-                  </p>
+                  <p className="text-xs text-muted-foreground">Password must be at least 8 characters.</p>
                 </div>
 
                 {err && (
