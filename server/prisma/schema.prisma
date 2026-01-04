@@ -74,3 +74,4 @@ model Message {
 
   @@index([conversationId, createdAt])
 }
+

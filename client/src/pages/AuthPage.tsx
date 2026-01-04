@@ -45,7 +45,7 @@ export function AuthPage({ onAuthed }: { onAuthed: () => void }) {
   }
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-yellow-300 to-gray-500 overflow-hidden">
+    <div className="relative min-h-screen w-full flex items-center justify-center p-6  overflow-hidden">
       {/* Background watermark text behind the card */}
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center">
         <div className="select-none text-black opacity-30 font-semibold tracking-tight text-4xl md:text-4xl lg:text-4xl mb-4">
