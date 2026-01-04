@@ -18,6 +18,11 @@ model User {
   sessions      AuthSession[]
   memberships   ConversationMember[]
   messages      Message[] @relation("SenderMessages")
+  studyathonsCreated Studyathon[] @relation("StudyathonsCreated")
+  studyathonJoins    StudyathonParticipant[]
+  questions          Question[]
+  answers            Answer[]
+
 }
 
 model AuthSession {
@@ -46,6 +51,8 @@ model Conversation {
 
   members   ConversationMember[]
   messages  Message[]
+
+  studyathon Studyathon?
 }
 
 model ConversationMember {
@@ -75,3 +82,66 @@ model Message {
   @@index([conversationId, createdAt])
 }
 
+model Studyathon {
+  id             String   @id @default(uuid())
+  title          String
+  description    String?
+  location       String?
+  startsAt       DateTime
+  endsAt         DateTime?
+  createdAt      DateTime @default(now())
+
+  createdById    String
+  createdBy      User     @relation("StudyathonsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+
+  // Optional: tie each studyathon to a group chat for participants
+  conversationId String   @unique
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  participants   StudyathonParticipant[]
+
+  @@index([startsAt])
+  @@index([createdById])
+}
+
+model StudyathonParticipant {
+  studyathonId String
+  userId       String
+  joinedAt     DateTime @default(now())
+
+  studyathon   Studyathon @relation(fields: [studyathonId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([studyathonId, userId])
+  @@index([userId])
+}
+
+model Question {
+  id          String   @id @default(uuid())
+  title       String
+  body        String
+  createdAt   DateTime @default(now())
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  answers     Answer[]
+
+  @@index([createdAt])
+  @@index([createdById])
+}
+
+model Answer {
+  id          String   @id @default(uuid())
+  questionId  String
+  body        String
+  createdAt   DateTime @default(now())
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, createdAt])
+  @@index([createdById])
+}

@@ -25,8 +25,9 @@ async function request(path: string, opts: RequestInit = {}) {
     const r = await fetch(API + "/auth/refresh", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: tokens.refreshToken })
+      body: JSON.stringify({ refreshToken: tokens.refreshToken }),
     });
+
     if (r.ok) {
       const refreshed = await r.json();
       const newTokens = { accessToken: refreshed.accessToken, refreshToken: refreshed.refreshToken };
@@ -49,6 +50,9 @@ async function request(path: string, opts: RequestInit = {}) {
 }
 
 export const api = {
+  // -------------------------
+  // AUTH
+  // -------------------------
   register: (email: string, password: string, username?: string) =>
     request("/auth/register", { method: "POST", body: JSON.stringify({ email, password, username }) }),
 
@@ -61,23 +65,92 @@ export const api = {
   logout: async () => {
     const t = getTokens();
     if (t?.refreshToken) {
-      await request("/auth/logout", { method: "POST", body: JSON.stringify({ refreshToken: t.refreshToken }) }).catch(() => {});
+      await request("/auth/logout", { method: "POST", body: JSON.stringify({ refreshToken: t.refreshToken }) }).catch(
+        () => {}
+      );
     }
     setTokens(null);
   },
 
   me: () => request("/auth/me"),
 
+  // -------------------------
+  // CONVERSATIONS + MESSAGES
+  // -------------------------
   listConversations: () => request("/conversations"),
-dmByEmail: (email: string) =>
-  request("/conversations/dm", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  }),
+
+  dmByEmail: (email: string) =>
+    request("/conversations/dm", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
 
   listMessages: (conversationId: string, cursor?: string) =>
     request(`/conversations/${conversationId}/messages${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`),
 
   sendMessage: (conversationId: string, body: string) =>
-    request(`/conversations/${conversationId}/messages`, { method: "POST", body: JSON.stringify({ body }) }),
+    request(`/conversations/${conversationId}/messages`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
+
+  // -------------------------
+  // GROUPS
+  // -------------------------
+  createGroup: (title: string, memberEmails?: string[]) =>
+    request("/conversations/group", {
+      method: "POST",
+      body: JSON.stringify({ title, memberEmails }),
+    }),
+
+  addGroupMemberByEmail: (conversationId: string, email: string) =>
+    request(`/conversations/${conversationId}/members`, {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  // -------------------------
+  // STUDY-A-THONS
+  // -------------------------
+  createStudyathon: (payload: {
+    title: string;
+    description?: string;
+    location?: string;
+    startsAt: string; // ISO
+    endsAt?: string; // ISO
+  }) =>
+    request("/studyathons", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  listLiveStudyathons: (limit = 20) =>
+    request(`/studyathons/live?limit=${encodeURIComponent(String(limit))}`),
+
+  joinStudyathon: (studyathonId: string) =>
+    request(`/studyathons/${studyathonId}/join`, { method: "POST" }),
+
+  // Option A: public ICS endpoint (no auth header needed)
+  studyathonCalendarUrl: (studyathonId: string) =>
+    `${API}/studyathons/${encodeURIComponent(studyathonId)}/calendar.ics`,
+
+  // -------------------------
+  // QUESTIONS + ANSWERS
+  // -------------------------
+  postQuestion: (payload: { title: string; body: string }) =>
+    request("/questions", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  listQuestions: (limit = 20) =>
+    request(`/questions?limit=${encodeURIComponent(String(limit))}`),
+
+  listAnswers: (questionId: string) => request(`/questions/${questionId}/answers`),
+
+  answerQuestion: (questionId: string, body: string) =>
+    request(`/questions/${questionId}/answers`, {
+      method: "POST",
+      body: JSON.stringify({ body }),
+    }),
 };
