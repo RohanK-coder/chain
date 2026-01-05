@@ -109,5 +109,6 @@ Chain is designed for verified university communities.
 - shadcn/ui + Tailwind CSS
 
 > Realtime messaging can be upgraded to Socket.IO / WebSockets (future milestone).
+> Under development (dev stage)
 
 
