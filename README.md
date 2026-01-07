@@ -45,7 +45,7 @@ Chain aims to:
 
 ## Platforms
 
-- 📱 **Mobile App**
+- 📱 **Mobile App to be developed**
 - 💻 **Website**
 
 ---
