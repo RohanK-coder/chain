@@ -379,6 +379,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
             <Button
               variant="outline"
               size="sm"
+              className="bg-red-300 hover:bg-red-400"
               onClick={async () => {
                 await api.logout();
                 onLogout();
@@ -406,7 +407,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                     inputMode="email"
                     autoComplete="email"
                   />
-                  <Button onClick={startDm} disabled={!dmEmail.trim()}>
+                  <Button onClick={startDm} disabled={!dmEmail.trim()} className="bg-green-500 text-black hover:bg-green-500">
                     <MessagesSquare className="mr-2 h-4 w-4" />
                     Open
                   </Button>
@@ -866,7 +867,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                 </div>
               </div>
 
-              <ScrollArea className="h-[260px] rounded-xl border">
+              <ScrollArea className="h-65 rounded-xl border">
                 <div className="p-3 space-y-3">
                   {!answers.length && (
                     <div className="text-sm text-muted-foreground">No answers yet. Be the first to reply.</div>
