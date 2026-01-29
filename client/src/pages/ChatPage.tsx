@@ -30,6 +30,10 @@ import {
   Plus,
   RefreshCcw,
   HelpCircle,
+  Copy,
+  Flame,
+  ThumbsUp,
+  Laugh,
 } from "lucide-react";
 
 type Conversation = {
@@ -124,10 +128,52 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
   // errors
   const [err, setErr] = useState<string | null>(null);
 
+  // UI sugar
+  const [convQuery, setConvQuery] = useState("");
+  const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
+
+  // local-only reactions (no backend needed)
+  const [reactions, setReactions] = useState<Record<string, Record<string, number>>>({});
+
   const active = useMemo(
     () => conversations.find((c) => c.id === activeId) ?? null,
     [conversations, activeId]
   );
+
+  function formatStartsIn(iso: string) {
+    const now = Date.now();
+    const t = new Date(iso).getTime();
+    const diff = t - now;
+
+    if (Number.isNaN(t)) return "";
+    if (diff <= 0) return "Started";
+
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+
+    if (days > 0) return `Starts in ${days}d`;
+    if (hrs > 0) return `Starts in ${hrs}h`;
+    return `Starts in ${Math.max(1, mins)}m`;
+  }
+
+  function reactToMessage(messageId: string, emoji: string) {
+    setReactions((prev) => {
+      const cur = prev[messageId] ?? {};
+      const next = { ...cur, [emoji]: (cur[emoji] ?? 0) + 1 };
+      return { ...prev, [messageId]: next };
+    });
+  }
+
+  async function copyMessage(messageId: string, body: string) {
+    try {
+      await navigator.clipboard.writeText(body);
+      setCopiedMsgId(messageId);
+      setTimeout(() => setCopiedMsgId(null), 900);
+    } catch {
+      // ignore
+    }
+  }
 
   async function loadMe() {
     const data = await api.me();
@@ -150,10 +196,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
     try {
       setStudyLoading(true);
       setQLoading(true);
-      const [s, q] = await Promise.all([
-        api.listLiveStudyathons?.(30),
-        api.listQuestions?.(30),
-      ]);
+      const [s, q] = await Promise.all([api.listLiveStudyathons?.(30), api.listQuestions?.(30)]);
       setStudyathons(s?.studyathons ?? []);
       setQuestions(q?.questions ?? []);
     } catch (e: any) {
@@ -363,9 +406,9 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
     : "Pick a conversation";
 
   return (
-    <div className="h-screen w-full grid grid-cols-1 md:grid-cols-[360px_1fr]">
+    <div className="h-screen w-full grid grid-cols-1 md:grid-cols-[360px_1fr] bg-gradient-to-b from-indigo-50 via-background to-emerald-50">
       {/* Sidebar */}
-      <aside className="border-r bg-background">
+      <aside className="border-r bg-background/70 backdrop-blur">
         <div className="p-4 space-y-4">
           {/* Me */}
           <div className="flex items-start justify-between gap-3">
@@ -393,7 +436,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
           <Separator />
 
           {/* DM + Create Group */}
-          <Card className="rounded-2xl">
+          <Card className="rounded-2xl bg-white/70 backdrop-blur border-muted-foreground/10">
             <CardContent className="p-4 space-y-4">
               {/* DM */}
               <div className="space-y-2">
@@ -406,8 +449,13 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                     onChange={(e) => setDmEmail(e.target.value)}
                     inputMode="email"
                     autoComplete="email"
+                    className="bg-white/70"
                   />
-                  <Button onClick={startDm} disabled={!dmEmail.trim()} className="bg-green-500 text-black hover:bg-green-500">
+                  <Button
+                    onClick={startDm}
+                    disabled={!dmEmail.trim()}
+                    className="bg-green-500 text-black hover:bg-green-500"
+                  >
                     <MessagesSquare className="mr-2 h-4 w-4" />
                     Open
                   </Button>
@@ -472,46 +520,67 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
             </Alert>
           )}
 
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Conversations</h3>
-            <Badge variant="secondary">{conversations.length}</Badge>
+          {/* Conversations header + search */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Conversations</h3>
+              <Badge variant="secondary">{conversations.length}</Badge>
+            </div>
+            <Input
+              placeholder="Search chats…"
+              value={convQuery}
+              onChange={(e) => setConvQuery(e.target.value)}
+              className="bg-white/70"
+            />
           </div>
         </div>
 
-        <ScrollArea className="h-[calc(100vh-330px)] px-2 pb-4">
+        <ScrollArea className="h-[calc(100vh-380px)] px-2 pb-4">
           <div className="space-y-2 px-2">
-            {conversations.map((c) => {
-              const selected = c.id === activeId;
-              const title = c.type === "dm" ? c.dmWith?.username ?? "DM" : c.title ?? "Group";
+            {conversations
+              .filter((c) => {
+                const q = convQuery.trim().toLowerCase();
+                if (!q) return true;
+                const title =
+                  c.type === "dm"
+                    ? c.dmWith?.username ?? c.dmWith?.email ?? "dm"
+                    : c.title ?? "group";
+                return title.toLowerCase().includes(q);
+              })
+              .map((c) => {
+                const selected = c.id === activeId;
+                const title = c.type === "dm" ? c.dmWith?.username ?? "DM" : c.title ?? "Group";
 
-              const subtitle =
-                c.type === "dm"
-                  ? c.dmWith?.email
-                    ? `@${c.dmWith.email}`
-                    : c.dmWith?.id ?? ""
-                  : `${c.memberCount ?? ""} members`;
+                const subtitle =
+                  c.type === "dm"
+                    ? c.dmWith?.email
+                      ? `@${c.dmWith.email}`
+                      : c.dmWith?.id ?? ""
+                    : `${c.memberCount ?? ""} members`;
 
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveId(c.id)}
-                  className={[
-                    "w-full text-left rounded-xl border p-3 transition",
-                    selected ? "bg-muted border-muted-foreground/20" : "bg-background hover:bg-muted/40",
-                  ].join(" ")}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{title}</div>
-                      <div className="text-xs text-muted-foreground truncate">{subtitle}</div>
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setActiveId(c.id)}
+                    className={[
+                      "w-full text-left rounded-xl border p-3 transition shadow-sm",
+                      selected
+                        ? "bg-white/70 backdrop-blur border-muted-foreground/20"
+                        : "bg-white/50 hover:bg-white/70 border-muted-foreground/10",
+                    ].join(" ")}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{title}</div>
+                        <div className="text-xs text-muted-foreground truncate">{subtitle}</div>
+                      </div>
+                      <Badge variant={c.type === "dm" ? "outline" : "secondary"} className="shrink-0">
+                        {c.type.toUpperCase()}
+                      </Badge>
                     </div>
-                    <Badge variant={c.type === "dm" ? "outline" : "secondary"} className="shrink-0">
-                      {c.type.toUpperCase()}
-                    </Badge>
-                  </div>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })}
 
             {!conversations.length && (
               <div className="text-sm text-muted-foreground px-2 py-6">
@@ -525,14 +594,14 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
       {/* Main */}
       <main className="flex flex-col min-h-0">
         {/* Top bar */}
-        <div className="border-b p-4 flex items-center justify-between gap-3">
+        <div className="border-b bg-background/70 backdrop-blur p-4 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="font-semibold truncate">{headerTitle}</div>
             {active && <div className="text-xs text-muted-foreground truncate">{active.id}</div>}
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={refreshFeed}>
+            <Button variant="outline" size="sm" onClick={refreshFeed} className="bg-white/60">
               <RefreshCcw className="mr-2 h-4 w-4" />
               Refresh Feed
             </Button>
@@ -543,7 +612,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
         {/* Content tabs (FIXED HEIGHT + SCROLL AREAS) */}
         <div className="flex-1 min-h-0">
           <Tabs defaultValue="chat" className="h-full flex flex-col">
-            <div className="border-b px-4 py-2 flex items-end justify-end">
+            <div className="border-b bg-background/50 backdrop-blur px-4 py-2 flex items-end justify-end">
               <TabsList>
                 <TabsTrigger value="chat">Chat</TabsTrigger>
                 <TabsTrigger value="feed">Live Feed</TabsTrigger>
@@ -555,7 +624,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
               {/* CHAT TAB */}
               <TabsContent value="chat" className="m-0 h-full">
                 <div className="h-full min-h-0 flex flex-col">
-                  {/* ✅ Scrollable messages region */}
+                  {/* Scrollable messages region */}
                   <div className="flex-1 min-h-0">
                     <ScrollArea className="h-full">
                       <div className="p-4 space-y-4">
@@ -571,19 +640,76 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
 
                         {messages.map((m) => {
                           const mine = m.senderId === me?.id;
+                          const msgReactions = reactions[m.id];
+
                           return (
                             <div key={m.id} className={mine ? "flex justify-end" : "flex justify-start"}>
-                              <div className="max-w-[78%]">
+                              <div className="max-w-[78%] group">
                                 <div
                                   className={[
-                                    "rounded-2xl px-3 py-2 border whitespace-pre-wrap break-words",
+                                    "relative rounded-2xl px-3 py-2 border whitespace-pre-wrap break-words transition shadow-sm",
                                     mine
-                                      ? "bg-blue-600 text-primary-foreground border-blue-600/30"
-                                      : "bg-background",
+                                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-primary-foreground border-blue-600/30"
+                                      : "bg-white/70 backdrop-blur border-muted-foreground/15",
                                   ].join(" ")}
                                 >
                                   {m.body}
+
+                                  {/* hover actions */}
+                                  <div className="absolute -top-3 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                                    <Button
+                                      type="button"
+                                      variant="secondary"
+                                      size="sm"
+                                      className="h-7 px-2 rounded-full"
+                                      onClick={() => reactToMessage(m.id, "👍")}
+                                    >
+                                      <ThumbsUp className="h-4 w-4 mr-1" /> 👍
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="secondary"
+                                      size="sm"
+                                      className="h-7 px-2 rounded-full"
+                                      onClick={() => reactToMessage(m.id, "🔥")}
+                                    >
+                                      <Flame className="h-4 w-4 mr-1" /> 🔥
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="secondary"
+                                      size="sm"
+                                      className="h-7 px-2 rounded-full"
+                                      onClick={() => reactToMessage(m.id, "😂")}
+                                    >
+                                      <Laugh className="h-4 w-4 mr-1" /> 😂
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="secondary"
+                                      size="sm"
+                                      className="h-7 px-2 rounded-full"
+                                      onClick={() => copyMessage(m.id, m.body)}
+                                    >
+                                      <Copy className="h-4 w-4 mr-1" />
+                                      {copiedMsgId === m.id ? "Copied" : "Copy"}
+                                    </Button>
+                                  </div>
                                 </div>
+
+                                {/* reactions row */}
+                                {msgReactions && (
+                                  <div className={mine ? "flex justify-end" : "flex justify-start"}>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                      {Object.entries(msgReactions).map(([emoji, count]) => (
+                                        <Badge key={emoji} variant="secondary" className="bg-white/70">
+                                          {emoji} {count}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
                                 <div className={mine ? "text-right" : "text-left"}>
                                   <div className="text-xs text-muted-foreground mt-1">
                                     {new Date(m.createdAt).toLocaleString()}
@@ -598,7 +724,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                   </div>
 
                   {/* Input stays pinned */}
-                  <div className="border-t p-4">
+                  <div className="border-t bg-background/60 backdrop-blur p-4">
                     <div className="flex gap-2">
                       <Input
                         placeholder={activeId ? "Message…" : "Select a conversation to message"}
@@ -608,6 +734,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                           if (e.key === "Enter") send();
                         }}
                         disabled={!activeId || sending}
+                        className="bg-white/70"
                       />
                       <Button onClick={send} disabled={!activeId || sending || !text.trim()}>
                         <Send className="mr-2 h-4 w-4" />
@@ -712,7 +839,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                       )}
 
                       {!studyLoading && !studyathons.length && (
-                        <Card className="rounded-2xl">
+                        <Card className="rounded-2xl bg-white/70 backdrop-blur border-muted-foreground/10 shadow-sm">
                           <CardContent className="p-4 text-sm text-muted-foreground">
                             No live study-a-thons right now. Host one to get started.
                           </CardContent>
@@ -720,16 +847,26 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                       )}
 
                       {studyathons.map((s) => (
-                        <Card key={s.id} className="rounded-2xl">
+                        <Card
+                          key={s.id}
+                          className="rounded-2xl bg-white/70 backdrop-blur border-muted-foreground/10 shadow-sm"
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className="font-semibold truncate">{s.title}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {new Date(s.startsAt).toLocaleString()}
-                                  {s.endsAt ? ` → ${new Date(s.endsAt).toLocaleString()}` : ""}
-                                  {s.location ? ` · ${s.location}` : ""}
+
+                                <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-2">
+                                  <Badge variant="secondary" className="bg-white/70">
+                                    {formatStartsIn(s.startsAt)}
+                                  </Badge>
+                                  <span>
+                                    {new Date(s.startsAt).toLocaleString()}
+                                    {s.endsAt ? ` → ${new Date(s.endsAt).toLocaleString()}` : ""}
+                                    {s.location ? ` · ${s.location}` : ""}
+                                  </span>
                                 </div>
+
                                 {s.description && (
                                   <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
                                     {s.description}
@@ -738,10 +875,16 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                               </div>
 
                               <div className="shrink-0 flex flex-col items-end gap-2">
-                                <Badge variant="secondary">{s.participantCount} joined</Badge>
+                                <Badge variant="secondary" className="bg-white/70">
+                                  {s.participantCount} joined
+                                </Badge>
                                 <div className="flex gap-2">
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={api.studyathonCalendarUrl(s.id)} target="_blank" rel="noreferrer">
+                                  <Button variant="outline" size="sm" asChild className="bg-white/60">
+                                    <a
+                                      href={api.studyathonCalendarUrl(s.id)}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
                                       <CalendarPlus className="mr-2 h-4 w-4" />
                                       Add
                                     </a>
@@ -773,7 +916,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                       </div>
                     </div>
 
-                    <Card className="rounded-2xl">
+                    <Card className="rounded-2xl bg-white/70 backdrop-blur border-muted-foreground/10 shadow-sm">
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <HelpCircle className="h-4 w-4" />
@@ -786,6 +929,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                             value={qTitle}
                             onChange={(e) => setQTitle(e.target.value)}
                             placeholder="How do I solve this DP transition?"
+                            className="bg-white/70"
                           />
                         </div>
 
@@ -795,6 +939,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                             value={qBody}
                             onChange={(e) => setQBody(e.target.value)}
                             placeholder="Paste the problem statement or what you tried…"
+                            className="bg-white/70"
                           />
                         </div>
 
@@ -810,7 +955,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                       {qLoading && <div className="text-sm text-muted-foreground">Loading questions…</div>}
 
                       {!qLoading && !questions.length && (
-                        <Card className="rounded-2xl">
+                        <Card className="rounded-2xl bg-white/70 backdrop-blur border-muted-foreground/10 shadow-sm">
                           <CardContent className="p-4 text-sm text-muted-foreground">
                             No questions yet. Be the first to ask!
                           </CardContent>
@@ -818,7 +963,10 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                       )}
 
                       {questions.map((q) => (
-                        <Card key={q.id} className="rounded-2xl">
+                        <Card
+                          key={q.id}
+                          className="rounded-2xl bg-white/70 backdrop-blur border-muted-foreground/10 shadow-sm"
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
@@ -833,8 +981,10 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                               </div>
 
                               <div className="shrink-0 flex flex-col items-end gap-2">
-                                <Badge variant="secondary">{q.answerCount} answers</Badge>
-                                <Button size="sm" variant="outline" onClick={() => openAnswers(q)}>
+                                <Badge variant="secondary" className="bg-white/70">
+                                  {q.answerCount} answers
+                                </Badge>
+                                <Button size="sm" variant="outline" onClick={() => openAnswers(q)} className="bg-white/60">
                                   View / Answer
                                 </Button>
                               </div>
@@ -860,21 +1010,21 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
 
           {answersFor ? (
             <div className="space-y-4">
-              <div className="rounded-xl border p-3">
+              <div className="rounded-xl border bg-white/70 backdrop-blur p-3">
                 <div className="font-semibold">{answersFor.title}</div>
                 <div className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
                   {answersFor.body}
                 </div>
               </div>
 
-              <ScrollArea className="h-65 rounded-xl border">
+              <ScrollArea className="h-65 rounded-xl border bg-white/50 backdrop-blur">
                 <div className="p-3 space-y-3">
                   {!answers.length && (
                     <div className="text-sm text-muted-foreground">No answers yet. Be the first to reply.</div>
                   )}
 
                   {answers.map((a) => (
-                    <div key={a.id} className="rounded-xl border p-3">
+                    <div key={a.id} className="rounded-xl border bg-white/70 backdrop-blur p-3">
                       <div className="text-xs text-muted-foreground">
                         {a.createdBy.username ? `@${a.createdBy.username}` : a.createdBy.email} ·{" "}
                         {new Date(a.createdAt).toLocaleString()}
@@ -891,6 +1041,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                   value={answerText}
                   onChange={(e) => setAnswerText(e.target.value)}
                   placeholder="Explain the approach, give hints, or share a solution…"
+                  className="bg-white/70"
                 />
               </div>
 
