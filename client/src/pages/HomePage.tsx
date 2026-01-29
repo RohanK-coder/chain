@@ -15,16 +15,56 @@ import {
   Sparkles,
 } from "lucide-react";
 
+const featureCards = [
+  {
+    title: "Study groups that stick",
+    desc: "Find classmates by course, topic, or interest and create groups in seconds.",
+    icon: Users,
+    accent: "from-fuchsia-500/70 via-pink-500/60 to-rose-500/70",
+  },
+  {
+    title: "Ask & answer threads",
+    desc: "Post a question, get hints and explanations from students who’ve already solved it.",
+    icon: MessagesSquare,
+    accent: "from-sky-500/70 via-cyan-500/60 to-emerald-500/70",
+  },
+  {
+    title: "Study-a-thons & events",
+    desc: "Host study sprints, review sessions, or social events — then manage RSVPs easily.",
+    icon: CalendarDays,
+    accent: "from-amber-500/70 via-orange-500/60 to-red-500/70",
+  },
+  {
+    title: "File sharing without chaos",
+    desc: "Keep notes, slides, and resources organized by group so you can find them fast.",
+    icon: FileText,
+    accent: "from-violet-500/70 via-indigo-500/60 to-blue-500/70",
+    badge: "dev stage",
+  },
+  {
+    title: "Verified college-only",
+    desc: "Sign up with your college email to keep the community real, safe, and relevant.",
+    icon: ShieldCheck,
+    accent: "from-emerald-500/70 via-teal-500/60 to-sky-500/70",
+  },
+  {
+    title: "Built by students",
+    desc: "Designed around real pain points — quick, focused, and friendly.",
+    icon: Sparkles,
+    accent: "from-pink-500/70 via-purple-500/60 to-indigo-500/70",
+  },
+];
+
 export function HomePage() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
       {/* Top Nav */}
-      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b bg-background/70 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl border bg-muted">
+            <div className="grid h-9 w-9 place-items-center rounded-xl border bg-gradient-to-br from-fuchsia-500/20 via-sky-500/20 to-emerald-500/20">
               <Sparkles className="h-5 w-5" />
             </div>
             <span className="text-lg font-semibold tracking-tight">Chain</span>
@@ -34,13 +74,28 @@ export function HomePage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" className="hidden sm:inline-flex" onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}>
+            <Button
+              variant="ghost"
+              className="hidden sm:inline-flex"
+              onClick={() =>
+                document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
               Features
             </Button>
-            <Button variant="ghost" className="hidden sm:inline-flex" onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}>
+            <Button
+              variant="ghost"
+              className="hidden sm:inline-flex"
+              onClick={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })}
+            >
               How it works
             </Button>
-            <Button onClick={() => navigate("/app")}>
+
+            {/* more colorful CTA */}
+            <Button
+              className="text-white shadow hover:opacity-95"
+              onClick={() => navigate("/app")}
+            >
               Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -49,23 +104,34 @@ export function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
+        {/* colorful background */}
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute left-1/2 top-[-240px] h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-muted blur-3xl" />
-          <div className="absolute bottom-[-240px] left-[10%] h-[480px] w-[480px] rounded-full bg-muted blur-3xl" />
+          <div className="absolute left-1/2 top-[-260px] h-[620px] w-[620px] -translate-x-1/2 rounded-full bg-gradient-to-br from-fuchsia-500/25 via-sky-500/20 to-emerald-500/20 blur-3xl" />
+          <div className="absolute bottom-[-260px] left-[6%] h-[560px] w-[560px] rounded-full bg-gradient-to-br from-amber-500/25 via-orange-500/20 to-rose-500/20 blur-3xl" />
+          <div className="absolute right-[-180px] top-[22%] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-violet-500/20 via-indigo-500/18 to-sky-500/18 blur-3xl" />
+
+          {/* subtle grid */}
+          <div className="absolute inset-0 opacity-[0.25] [background:radial-gradient(circle_at_1px_1px,hsl(var(--foreground))_1px,transparent_0)_0_0/22px_22px]" />
         </div>
 
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
           <div className="flex flex-col justify-start">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">
+              <Badge className="border-0 bg-gradient-to-r from-emerald-500/20 via-sky-500/20 to-fuchsia-500/20 text-black">
                 <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
                 Verified college email only
               </Badge>
-              <Badge variant="outline">Mobile app + website</Badge>
+              <Badge variant="outline" className="border-foreground/15">
+                Mobile app + website
+              </Badge>
             </div>
 
             <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">
-              Find your people to study with — instantly.
+              Find your people to study with —{" "}
+              <span className="bg-gradient-to-r from-fuchsia-500 via-sky-500 to-emerald-500 bg-clip-text text-transparent">
+                instantly
+              </span>
+              
             </h1>
 
             <p className="mt-4 text-lg text-muted-foreground">
@@ -74,12 +140,18 @@ export function HomePage() {
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button size="lg" onClick={() => navigate("/app")}>
+              <Button
+                size="lg"
+                className=" text-white shadow-md hover:opacity-95"
+                onClick={() => navigate("/app")}
+              >
                 Get Started <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
+
               <Button
                 size="lg"
                 variant="outline"
+                className="border-foreground/15 bg-background/60 backdrop-blur hover:bg-background/80"
                 onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
               >
                 Explore features
@@ -88,15 +160,15 @@ export function HomePage() {
 
             <div className="mt-6 space-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                 Built by students, for students
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-4 w-4 text-sky-500" />
                 Get answers from students who already solved it
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" />
+                <CheckCircle2 className="h-4 w-4 text-fuchsia-500" />
                 Share files without digging through endless links
               </div>
             </div>
@@ -104,7 +176,8 @@ export function HomePage() {
 
           {/* Hero Card */}
           <div className="flex items-center justify-center">
-            <Card className="w-full max-w-lg rounded-2xl">
+            <Card className="w-full max-w-lg rounded-2xl border-foreground/10 bg-background/60 shadow-lg backdrop-blur">
+              <div className="h-2 w-full rounded-t-2xl bg-gradient-to-r from-fuchsia-500 via-sky-500 to-emerald-500" />
               <CardContent className="p-6 sm:p-8">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -113,13 +186,15 @@ export function HomePage() {
                       “Discrete Math — Study Group”
                     </h3>
                   </div>
-                  <Badge variant="secondary">Live</Badge>
+                  <Badge className="border-0 bg-red-600">
+                    Live
+                  </Badge>
                 </div>
 
                 <Separator className="my-5" />
 
                 <div className="space-y-4">
-                  <div className="rounded-xl border bg-muted/40 p-4">
+                  <div className="rounded-xl border border-foreground/10 bg-gradient-to-br from-emerald-500/10 via-sky-500/10 to-fuchsia-500/10 p-4">
                     <div className="flex items-center gap-2 font-medium">
                       <Users className="h-4 w-4" />
                       8 students joined
@@ -129,7 +204,7 @@ export function HomePage() {
                     </p>
                   </div>
 
-                  <div className="rounded-xl border bg-muted/40 p-4">
+                  <div className="rounded-xl border border-foreground/10 bg-gradient-to-br from-fuchsia-500/10 via-purple-500/10 to-indigo-500/10 p-4">
                     <div className="flex items-center gap-2 font-medium">
                       <MessagesSquare className="h-4 w-4" />
                       Q&amp;A thread
@@ -139,12 +214,22 @@ export function HomePage() {
                     </p>
                   </div>
 
-                  
-
-                  
+                  <div className="rounded-xl border border-foreground/10 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 p-4">
+                    <div className="flex items-center gap-2 font-medium">
+                      <CalendarDays className="h-4 w-4" />
+                      Next event: “Calc Sprint”
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      RSVP and get reminders — show up ready to work.
+                    </p>
+                  </div>
                 </div>
 
-                <Button className="mt-6 w-full" size="lg" onClick={() => navigate("/app")}>
+                <Button
+                  className="mt-6 w-full  text-white shadow-md hover:opacity-95"
+                  size="lg"
+                  onClick={() => navigate("/app")}
+                >
                   Join with your college email <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
 
@@ -162,7 +247,9 @@ export function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <Badge variant="secondary">Features</Badge>
+              <Badge className="border-0 bg-gradient-to-r from-fuchsia-500/20 via-sky-500/20 to-emerald-500/20 text-black">
+                Features
+              </Badge>
               <h2 className="mt-3 text-3xl font-semibold tracking-tight">
                 Everything you need to connect and study better
               </h2>
@@ -171,83 +258,42 @@ export function HomePage() {
                 discuss solutions, and share materials without friction.
               </p>
             </div>
-            <Button variant="outline" onClick={() => navigate("/app")} className="mt-2 sm:mt-0">
+
+            <Button
+              variant="outline"
+              className="mt-2 border-foreground/15 bg-background/60 backdrop-blur hover:bg-background/80 sm:mt-0"
+              onClick={() => navigate("/app")}
+            >
               Get Started
             </Button>
           </div>
 
           <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 font-semibold">
-                  <Users className="h-5 w-5" />
-                  Study groups that stick
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Find classmates by course, topic, or interest and create groups in seconds.
-                </p>
-              </CardContent>
-            </Card>
+            {featureCards.map(({ title, desc, icon: Icon, accent, badge }) => (
+              <Card
+                key={title}
+                className="group rounded-2xl border-foreground/10 bg-background/60 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className={`h-1.5 w-full rounded-t-2xl bg-gradient-to-r ${accent}`} />
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <span className={`grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br ${accent} text-foreground`}>
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <span>{title}</span>
+                    </div>
+                    {badge ? (
+                      <Badge variant="secondary" className="shrink-0">
+                        {badge}
+                      </Badge>
+                    ) : null}
+                  </div>
 
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 font-semibold">
-                  <MessagesSquare className="h-5 w-5" />
-                  Ask &amp; answer threads
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Post a question, get hints and explanations from students who’ve already solved it.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 font-semibold">
-                  <CalendarDays className="h-5 w-5" />
-                  Study-a-thons &amp; events
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Host study sprints, review sessions, or social events — then manage RSVPs easily.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 font-semibold">
-                  <FileText className="h-5 w-5" />
-                  File sharing without chaos : dev stage
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Keep notes, slides, and resources organized by group so you can find them fast.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 font-semibold">
-                  <ShieldCheck className="h-5 w-5" />
-                  Verified college-only
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Sign up with your college email to keep the community real, safe, and relevant.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 font-semibold">
-                  <Sparkles className="h-5 w-5" />
-                  Built by students
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Designed around the real pain points of university life — quick, focused, and friendly.
-                </p>
-              </CardContent>
-            </Card>
+                  <p className="mt-3 text-sm text-muted-foreground">{desc}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -256,48 +302,51 @@ export function HomePage() {
       <section id="how" className="border-t">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
           <div className="max-w-2xl">
-            <Badge variant="secondary">How it works</Badge>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
-              Start in under a minute
-            </h2>
+            <Badge className="border-0 text-black bg-gradient-to-r from-amber-500/20 via-rose-500/20 to-fuchsia-500/20">
+              How it works
+            </Badge>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">Start in under a minute</h2>
             <p className="mt-2 text-muted-foreground">
               Create your account with a verified college email, then connect to your campus community.
             </p>
           </div>
 
           <div className="mt-10 grid gap-4 md:grid-cols-3">
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="text-sm text-muted-foreground">Step 1</div>
-                <div className="mt-1 text-lg font-semibold">Verify your college email</div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Keep Chain exclusive to students, reducing spam and keeping discussions high-quality.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="text-sm text-muted-foreground">Step 2</div>
-                <div className="mt-1 text-lg font-semibold">Join or create groups</div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Find your course and connect with students who want to collaborate.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl">
-              <CardContent className="p-6">
-                <div className="text-sm text-muted-foreground">Step 3</div>
-                <div className="mt-1 text-lg font-semibold">Ask, share, and host</div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Post questions, share resources, or host a study-a-thon — right inside your group.
-                </p>
-              </CardContent>
-            </Card>
+            {[
+              {
+                step: "Step 1",
+                title: "Verify your college email",
+                desc: "Keep Chain exclusive to students, reducing spam and keeping discussions high-quality.",
+                accent: "from-emerald-500/70 via-sky-500/60 to-fuchsia-500/70",
+              },
+              {
+                step: "Step 2",
+                title: "Join or create groups",
+                desc: "Find your course and connect with students who want to collaborate.",
+                accent: "from-amber-500/70 via-orange-500/60 to-rose-500/70",
+              },
+              {
+                step: "Step 3",
+                title: "Ask, share, and host",
+                desc: "Post questions, share resources, or host a study-a-thon — right inside your group.",
+                accent: "from-violet-500/70 via-indigo-500/60 to-sky-500/70",
+              },
+            ].map((s) => (
+              <Card
+                key={s.step}
+                className="rounded-2xl border-foreground/10 bg-background/60 shadow-sm backdrop-blur"
+              >
+                <div className={`h-1.5 w-full rounded-t-2xl bg-gradient-to-r ${s.accent}`} />
+                <CardContent className="p-6">
+                  <div className="text-sm text-muted-foreground">{s.step}</div>
+                  <div className="mt-1 text-lg font-semibold">{s.title}</div>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
-          <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-2xl border bg-muted/30 p-6 sm:flex-row sm:items-center">
+          <div className="mt-10 flex flex-col items-start justify-between gap-4 rounded-2xl border border-foreground/10 bg-gradient-to-br from-emerald-500/10 via-sky-500/10 to-fuchsia-500/10 p-6 sm:flex-row sm:items-center">
             <div>
               <div className="flex items-center gap-2 font-semibold">
                 <ShieldCheck className="h-5 w-5" />
@@ -307,7 +356,11 @@ export function HomePage() {
                 Chain works on mobile and web, and access is limited to verified college emails.
               </p>
             </div>
-            <Button size="lg" onClick={() => navigate("/app")}>
+            <Button
+              size="lg"
+              className=" text-white shadow-md hover:opacity-95"
+              onClick={() => navigate("/app")}
+            >
               Get Started <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -321,9 +374,9 @@ export function HomePage() {
             © {new Date().getFullYear()} Chain — developed by students, for students.
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline">Mobile</Badge>
-            <Badge variant="outline">Web</Badge>
-            <Badge variant="secondary">
+            <Badge className="border-0 text-black bg-gradient-to-r from-sky-500/20 to-emerald-500/20">Mobile</Badge>
+            <Badge className="border-0 text-black bg-gradient-to-r from-fuchsia-500/20 to-purple-500/20">Web</Badge>
+            <Badge className="border-0 text-black bg-gradient-to-r from-emerald-500/20 via-sky-500/20 to-fuchsia-500/20">
               <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
               College verified
             </Badge>
