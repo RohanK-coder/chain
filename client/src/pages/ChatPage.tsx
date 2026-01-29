@@ -95,14 +95,14 @@ type GroupMember = {
   joinedAt: string;
 };
 
-function initials(label: string) {
-  const s = label.trim();
-  if (!s) return "U";
-  const parts = s.split(/[\s._-]+/).filter(Boolean);
-  const a = parts[0]?.[0] ?? "U";
-  const b = parts[1]?.[0] ?? "";
-  return (a + b).toUpperCase();
-}
+// function initials(label: string) {
+//   const s = label.trim();
+//   if (!s) return "U";
+//   const parts = s.split(/[\s._-]+/).filter(Boolean);
+//   const a = parts[0]?.[0] ?? "U";
+//   const b = parts[1]?.[0] ?? "";
+//   return (a + b).toUpperCase();
+// }
 
 function parseTags(raw: any): string[] {
   if (!raw) return [];
@@ -372,21 +372,21 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
     }
   }
 
-  async function openMembers() {
-    if (!activeId) return;
-    setErr(null);
-    setMembersOpen(true);
-    setMembersLoading(true);
-    try {
-      const data = await api.getConversationMembers(activeId);
-      setMembers(data.members ?? []);
-    } catch (e: any) {
-      setErr(e.message ?? "Failed to load members");
-      setMembers([]);
-    } finally {
-      setMembersLoading(false);
-    }
-  }
+  // async function openMembers() {
+  //   if (!activeId) return;
+  //   setErr(null);
+  //   setMembersOpen(true);
+  //   setMembersLoading(true);
+  //   try {
+  //     const data = await api.getConversationMembers(activeId);
+  //     setMembers(data.members ?? []);
+  //   } catch (e: any) {
+  //     setErr(e.message ?? "Failed to load members");
+  //     setMembers([]);
+  //   } finally {
+  //     setMembersLoading(false);
+  //   }
+  // }
 
   async function createStudyathon() {
     setErr(null);
@@ -526,7 +526,7 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
       });
   }, [conversations, convQuery, convTab]);
 
-  const meLabel = me?.username ? `@${me.username}` : me?.email ?? "Me";
+  // const meLabel = me?.username ? `@${me.username}` : me?.email ?? "Me";
 
   return (
     <div
