@@ -122,6 +122,9 @@ model Question {
   body        String
   createdAt   DateTime @default(now())
 
+  // NEW: JSON string of tags like ["DSA","Math"]
+  tags        String?
+
   createdById String
   createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
@@ -130,6 +133,7 @@ model Question {
   @@index([createdAt])
   @@index([createdById])
 }
+
 
 model Answer {
   id          String   @id @default(uuid())

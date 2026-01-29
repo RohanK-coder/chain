@@ -20,7 +20,7 @@ async function request(path: string, opts: RequestInit = {}) {
   const res = await fetch(API + path, { ...opts, headers });
   const data = await res.json().catch(() => ({}));
 
-  // if access expired, try refresh once
+  // refresh once
   if (res.status === 401 && tokens?.refreshToken && path !== "/auth/refresh") {
     const r = await fetch(API + "/auth/refresh", {
       method: "POST",
@@ -33,7 +33,6 @@ async function request(path: string, opts: RequestInit = {}) {
       const newTokens = { accessToken: refreshed.accessToken, refreshToken: refreshed.refreshToken };
       setTokens(newTokens);
 
-      // retry original
       const retryHeaders = new Headers(opts.headers || {});
       retryHeaders.set("Content-Type", "application/json");
       retryHeaders.set("Authorization", `Bearer ${newTokens.accessToken}`);
@@ -48,6 +47,8 @@ async function request(path: string, opts: RequestInit = {}) {
   if (!res.ok) throw new Error(data.error || "Request failed");
   return data;
 }
+
+export type UserSuggestion = { id: string; email: string; username?: string | null };
 
 export const api = {
   // -------------------------
@@ -109,6 +110,18 @@ export const api = {
       body: JSON.stringify({ email }),
     }),
 
+  getConversationMembers: (conversationId: string) =>
+    request(`/conversations/${conversationId}/members`),
+
+  leaveGroup: (conversationId: string) =>
+    request(`/conversations/${conversationId}/leave`, { method: "POST" }),
+
+  // -------------------------
+  // USER SEARCH (suggestions)
+  // -------------------------
+  searchUsers: (q: string) =>
+    request(`/users/search?q=${encodeURIComponent(q)}`) as Promise<{ users: UserSuggestion[] }>,
+
   // -------------------------
   // STUDY-A-THONS
   // -------------------------
@@ -130,14 +143,13 @@ export const api = {
   joinStudyathon: (studyathonId: string) =>
     request(`/studyathons/${studyathonId}/join`, { method: "POST" }),
 
-  // Option A: public ICS endpoint (no auth header needed)
   studyathonCalendarUrl: (studyathonId: string) =>
     `${API}/studyathons/${encodeURIComponent(studyathonId)}/calendar.ics`,
 
   // -------------------------
   // QUESTIONS + ANSWERS
   // -------------------------
-  postQuestion: (payload: { title: string; body: string }) =>
+  postQuestion: (payload: { title: string; body: string; tags?: string[] }) =>
     request("/questions", {
       method: "POST",
       body: JSON.stringify(payload),
