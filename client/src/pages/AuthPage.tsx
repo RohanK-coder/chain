@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useNavigate } from "react-router";
+import { Sparkles } from "lucide-react";
+import logo from "../assets/chain-logo.png"
 
 export function AuthPage({ onAuthed }: { onAuthed: () => void }) {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -15,6 +18,7 @@ export function AuthPage({ onAuthed }: { onAuthed: () => void }) {
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const canSubmit = useMemo(() => {
     const e = email.trim();
@@ -46,12 +50,29 @@ export function AuthPage({ onAuthed }: { onAuthed: () => void }) {
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center p-6  overflow-hidden">
-      {/* Background watermark text behind the card */}
-      <div className="pointer-events-none absolute inset-0 flex items-end justify-center">
-        <div className="select-none text-black opacity-30 font-semibold tracking-tight text-4xl md:text-4xl lg:text-4xl mb-4">
-          app made by rohan kommathoti for csulb
-        </div>
+      {/* Top-left logo */}
+      <div className="absolute left-4 top-4 z-20 sm:left-6 sm:top-6 ">
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          aria-label="Go to home"
+          className="rounded-xl p-1 md:p-2 flex items-center justify-center gap-1"
+        >
+          {/* <img
+            src={logo}
+            alt="Chain"
+            className="h-12 w-auto object-contain md:h-40 lg:h-40"
+          /> */}
+          <div className="grid h-9 w-9 place-items-center rounded-xl border bg-gradient-to-br from-fuchsia-500/20 via-sky-500/20 to-emerald-500/20">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+          <span className="text-lg font-semibold tracking-tight">Chain</span>
+        </button>
       </div>
+
+
+      {/* Background watermark text behind the card */}
+      
 
       <Card className="relative z-10 w-full max-w-md">
         <CardHeader className="space-y-2">
