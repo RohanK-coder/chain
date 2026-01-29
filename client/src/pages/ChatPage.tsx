@@ -969,7 +969,15 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
         <div className="p-4 border-b">
           <div className="flex items-center justify-between gap-3">
             
-            <p>Live Feed</p>
+            <div className="flex items-center gap-2 min-w-0">
+  <span className="font-semibold truncate">Live Feed</span>
+  <span
+    className="inline-block h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"
+    aria-label="Live"
+    title="Live"
+  />
+</div>
+
             <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
