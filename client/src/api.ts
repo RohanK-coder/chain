@@ -165,4 +165,14 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ body }),
     }),
+  // -------------------------
+  // AI
+  // -------------------------
+  aiAnswerQuestion: (questionId: string): Promise<{ answer: string }> =>
+    request("/ai/answer-question", {
+      method: "POST",
+      body: JSON.stringify({ questionId }),
+    }),
+
+
 };
