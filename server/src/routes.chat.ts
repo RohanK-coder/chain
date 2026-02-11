@@ -2,6 +2,9 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "./prisma";
 import { requireAuth, type AuthedRequest } from "./auth";
+import { GoogleGenAI } from "@google/genai";
+
+
 
 const router = Router();
 
@@ -545,5 +548,66 @@ router.get("/questions/:id/answers", requireAuth, async (req: AuthedRequest, res
 
   res.json({ answers: items });
 });
+/**
+ * AI: Generate an answer for a question using Gemini
+ * POST /ai/answer-question { questionId }
+ */
+router.post("/ai/answer-question", requireAuth, async (req: AuthedRequest, res) => {
+  const body = z
+    .object({
+      questionId: z.string().min(1),
+    })
+    .parse(req.body);
+
+  const q = await prisma.question.findUnique({ where: { id: body.questionId } });
+  if (!q) return res.status(404).json({ error: "Question not found" });
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: "Missing GEMINI_API_KEY" });
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+
+    const prompt = `
+You are a helpful tutor. Answer clearly and correctly.
+
+Rules:
+- Keep the answer concise and within 3500 characters.
+- Use steps/bullets when helpful.
+- If code is relevant, include it.
+- If ambiguous, state assumptions.
+
+Title: ${q.title}
+
+Question:
+${q.body}
+`.trim();
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        maxOutputTokens: 600, // helps keep output short
+        temperature: 0.4,
+      },
+    });
+
+    let text = (response.text ?? "").trim();
+    if (!text) return res.status(500).json({ error: "Empty AI response" });
+
+    // IMPORTANT: keep under your existing 4000 char answer limit
+    const MAX = 3800;
+    if (text.length > MAX) {
+      text = text.slice(0, MAX) + "\n\n(Truncated to fit the 4000 character limit.)";
+    }
+
+    return res.json({ answer: text });
+  } catch (e: any) {
+    return res.status(500).json({ error: e?.message ?? "Gemini failed" });
+  }
+});
+
+
+
 
 export default router;

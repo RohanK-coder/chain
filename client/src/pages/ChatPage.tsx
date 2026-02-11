@@ -93,8 +93,9 @@ type Answer = {
   id: string;
   body: string;
   createdAt: string;
-  createdBy: { id: true; email: string; username?: string | null };
+  createdBy: { id: string; email: string; username?: string | null };
 };
+
 
 type GroupMember = {
   id: string;
@@ -198,6 +199,8 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
   const [rightTab, setRightTab] = useState<"feed" | "profile">("feed");
 
   const feedQuestionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [aiAnswering, setAiAnswering] = useState(false);
+
 
   const active = useMemo(
     () => conversations.find((c) => c.id === activeId) ?? null,
@@ -251,6 +254,21 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
       // ignore
     }
   }
+  async function answerWithAI() {
+  if (!answersFor) return;
+  setErr(null);
+  setAiAnswering(true);
+  try {
+    const r = await api.aiAnswerQuestion(answersFor.id);
+    setAnswerText(r.answer); // ✅ fills the answer textarea
+  } catch (e: any) {
+    setErr(e.message ?? "AI failed");
+  } finally {
+    setAiAnswering(false);
+  }
+}
+
+
 
   async function loadMe() {
     const data = await api.me();
@@ -1476,6 +1494,11 @@ export function ChatPage({ onLogout }: { onLogout: () => void }) {
                 <Button onClick={submitAnswer} disabled={!answerText.trim() || answering}>
                   {answering ? "Posting…" : "Post answer"}
                 </Button>
+                <Button onClick={answerWithAI} disabled={!answersFor || aiAnswering}>
+  {aiAnswering ? "Thinking…" : "Answer with AI"}
+</Button>
+
+
               </DialogFooter>
             </div>
           ) : (
