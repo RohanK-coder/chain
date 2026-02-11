@@ -572,7 +572,7 @@ router.post("/ai/answer-question", requireAuth, async (req: AuthedRequest, res) 
 You are a helpful tutor. Answer clearly and correctly.
 
 Rules:
-- Keep the answer concise and within 3500 characters.
+- Keep the answer concise and within 100 words.
 - Use steps/bullets when helpful.
 - If code is relevant, include it.
 - If ambiguous, state assumptions.
@@ -593,6 +593,7 @@ ${q.body}
     });
 
     let text = (response.text ?? "").trim();
+    console.log(text)
     if (!text) return res.status(500).json({ error: "Empty AI response" });
 
     // IMPORTANT: keep under your existing 4000 char answer limit
